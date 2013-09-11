@@ -1,0 +1,116 @@
+<% content_for :header_tags do %>
+    <%= stylesheet_link_tag 'plugin_resource', :plugin => 'resource' %>
+    <%= javascript_include_tag 'project.gantt.reallocation.js',  :plugin => 'resource' %>
+<% end %>
+
+
+<h2><%= l(:user_allocation_gantt) %></h2>
+
+
+<br/>
+
+
+<!--search filter-->
+<%= form_tag({:controller => 'user_allocation_gantt', :action => 'show2',:month => params[:month],
+              :year => params[:year], :months => params[:months]},
+             :method => :get, :id => 'query_form') do %>
+    <%= hidden_field_tag 'set_filter', '1' %>
+    <fieldset id="filters" class="collapsible <%= @query.new_record? ? "" : "collapsed" %>">
+      <legend onclick="toggleFieldset(this);"><%= l(:filter_issue_label) %></legend>
+      <div style="<%= @query.new_record? ? "" : "display: none;" %>">
+        <%= render :partial => 'queries/filters', :locals => {:query => @query} %>
+      </div>
+    </fieldset>
+
+    <fieldset><legend><%= l(:filter_user_label) %></legend>
+      <label for='status'><%= l(:field_status) %>:</label>
+      <%= select_tag 'status', users_status_options_for_select(@status), :class => "small" %>
+
+      <% if @groups.present? %>
+          <label for='group_id'><%= l(:label_group) %>:</label>
+          <%= select_tag 'group_id', content_tag('option') + options_from_collection_for_select(@groups, :id, :name, params[:group_id].to_i) %>
+      <% end %>
+
+      <label for='name'><%= l(:label_user) %>:</label>
+      <%= text_field_tag 'name', params[:name], :size => 30 %>
+    </fieldset>
+
+    <p class="buttons">
+      <%= text_field_tag 'months', @gantt.months, :size => 2 %>
+      <%= l(:label_months_from) %>
+      <%= select_month(@gantt.month_from, :prefix => "month", :discard_type => true) %>
+      <%= select_year(@gantt.year_from, :prefix => "year", :discard_type => true) %>
+      <%= hidden_field_tag 'zoom', @gantt.zoom %>
+
+      <%= link_to_function l(:button_apply), '$("#query_form").submit()',
+                           :class => 'icon icon-checked' %>
+      <%= link_to l(:button_clear), { :project_id => @project, :set_filter => 1 },
+                  :class => 'icon icon-reload' %>
+    </p>
+<% end %>
+
+
+
+
+
+<!--chart-->
+<div id="jsrm">
+
+</div>
+
+<p class="pagination"><%= pagination_links_full @user_pages %></p>
+
+<!--export-->
+<p class="other-formats">
+  <%= link_to 'CSV', params.merge(@gantt.params).merge(:format=>'csv'), :title => "Export All Page(s)" %>
+  |
+  <%= link_to 'XLS', params.merge(@gantt.params).merge(:action=>'user_allocation_gantt_xls'), :title => "Export All Page(s)" %>
+</p>
+
+
+<!--tips-->
+<p>
+  Tips:
+<ul>
+  <li>Only <b>"
+    <%
+       Tracker.sorted.all.each do |t|
+         if Setting.plugin_resource['resource_task_tracker'] == t.id.to_s
+    %>
+            <%=t.name%>
+    <%
+           break
+         end
+       end
+    %>
+    "</b> can be shown here.
+  </li>
+  <li>If estimated hours is 8 hours, allocation <b>cannot</b> be 4 + 5.</li>
+  <li>If estimated hours is 8 hours, allocation  can be 1.5 + 6.5</li>
+  <li>Users without tasks are hidden.</li>
+  <li>Only the issues without child-issue can be set allocation.</li>
+</ul>
+</p>
+
+<script>
+    //<![CDATA[
+
+
+
+    $( "#jsrm" ).jsrm({
+        data: 'resourcemng_data.json'+window.location.search,
+        start_date:'<%=@date_from%>',
+        end_date:'<%=@date_to%>',
+        onDataReceived: function(data){
+        }
+    });
+
+
+    //select tab
+    $(".resource").addClass("selected");
+
+    //remove filter: tracker
+    $("#add_filter_select option[value='tracker_id']").remove();
+    //]]>
+</script>
+

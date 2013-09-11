@@ -1,0 +1,211 @@
+.resource_task_todo{
+    border: 1px solid #6589A9;
+    background-color: #F1F1F1;
+    filter:alpha(Opacity=80);
+    -moz-opacity:0.8;
+    opacity: 0.8;
+}
+
+.resource_task_late{
+    border:  1px solid transparent;
+    background-color: red;
+    filter:alpha(Opacity=30);
+    -moz-opacity:0.3;
+    opacity: 0.3;
+}
+
+.resource_task_done{
+    border:  1px solid transparent;
+    background-color: green;
+    filter:alpha(Opacity=30);
+    -moz-opacity:0.3;
+    opacity: 0.3;
+}
+
+span.resource_task_allocation{
+    font-size: 10px;
+    text-align: center;
+    display:-moz-inline-box;  /* to make width effective*/
+    display:inline-block;     /* to make width effective*/
+    cursor: hand;
+}
+input.resource_task_allocation{
+    background: none repeat scroll 0 0 #FFFFFF;
+    border-left: 0 none;
+    border-top: 0 none;
+    border-right:1px solid #C0C0C0;
+    border-bottom: 1px solid #C0C0C0;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    vertical-align: bottom;
+}
+.resource_task_submit{
+    float: right;
+    font-size: 9px;
+    width: 20px;
+}
+
+.resource_task_hide{
+    background-color: transparent;
+    border: 1px none;
+    cursor: hand;
+}
+
+.resource_task_show{
+    background-color: #ffffff;
+    border: 1px solid black;
+}
+
+.warn{
+    color: red;
+}
+
+.resource_personal_allocation_back{
+    border-bottom: 1px solid #6589A9;
+    border-top: 1px solid #6589A9;
+    background-color: #F1F1F1;
+    position: absolute;
+}
+
+.icon-issue{
+    display:-moz-inline-box;  /* to make width effective*/
+    display:inline-block;     /* to make width effective*/
+    width: 100%;
+    padding-top: 0px;
+}
+
+.icon-issue>span:first-child{
+    width: 55%;
+    display:-moz-inline-box;  /* to make width effective*/
+    display:inline-block;     /* to make width effective*/
+
+}
+
+.icon-issue>a{
+    width: 25%;
+    display:-moz-inline-box;  /* to make width effective*/
+    display:inline-block;     /* to make width effective*/
+
+}
+.gantt_subjects{
+    font-size: 1em;
+}
+
+.task{
+    height:13px;
+    color: black;
+    text-align: center;
+}
+
+
+.jsrm_gantt_hdr{
+    border-bottom: 1px solid #C0C0C0;
+    border-right: 1px solid #C0C0C0;
+    border-top: 1px solid #C0C0C0;
+    height: 16px;
+    overflow: hidden;
+    position: absolute;
+    text-align: center;
+    top: 0;
+}
+.jsrm_table{
+    width:100%;
+    border:0;
+    border-collapse: collapse;
+    color: #484848;
+    font-family: Verdana,sans-serif;
+    font-size: 12px;
+}
+.jsrm_table_left{
+    padding: 0px;
+}
+.jsrm_left_header{
+    position: relative;
+    right: -2px;
+    background: none repeat scroll 0 0 #EEEEEE;
+}
+.jsrm_left_div{
+    position: relative
+}
+.jsrm_left_title{
+    position: absolute;
+}
+.jsrm_left_border{
+    border-left: 1px solid #C0C0C0;
+    overflow: hidden;
+    right: -2px;
+}
+.jsrm_right_div{
+    position: relative ;
+    overflow: auto;
+}
+.jsrm_right_header{
+    background: none repeat scroll 0 0 #EEEEEE;
+}
+.jsrm_nwday{
+    background-color: #F1F1F1;
+}
+.jsrm_line{
+    height: 16px;
+    line-height: 16px;
+    overflow: hidden;
+    /*text-overflow: ellipsis;  */
+    white-space: nowrap;
+}
+.jsrm_total_allocation{
+    display: inline-block;
+    font-size: 10px;
+    text-align: center;
+    font-weight: bold;
+    font-style: italic;;
+}
+.jsrm_personal_allocation_back{
+    border-bottom: 1px solid #6589A9;
+    border-top: 1px solid #6589A9;
+    background-color: #F1F1F1;
+    position: absolute;
+}
+.jsrm_task{
+    position: absolute;
+    border: 1px solid #6589A9;
+    opacity: 0.8;
+    background-color: #F1F1F1;
+}
+.jsrm_leaf:hover{
+    /*cursor: move;*/
+}
+.jsrm_today_line{
+    border-left: 1px dashed red;
+    position: absolute;
+    z-index: 3000;
+}
+
+table.project_status_table{
+    border: 1px solid #E4E4E4;
+    border-collapse: collapse;
+    margin-bottom: 4px;
+    width: 100%;
+    table-layout: fixed;
+}
+
+table.project_status_table th{
+    background-color: #EEEEEE;
+    padding: 5px;
+    white-space: nowrap;
+}
+
+table.project_status_table td {
+    padding: 5px;
+    width: 25%;
+}
+
+.highlight_yellow {
+    background-color:#FFFFDD;
+    border: 1px solid #D7D7D7;
+}
+
+.grey_italic{
+    color: #808080;
+    font-style:italic;
+}

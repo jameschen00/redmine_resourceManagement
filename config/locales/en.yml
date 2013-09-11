@@ -1,0 +1,18 @@
+# English strings go here for Rails i18n
+en:
+  my_label: "My label"
+  user_allocation_gantt: "User Allocation Gantt"
+  filter_issue_label: "Filter Issues"
+  filter_user_label: "Filter Users"
+
+  project_status: "Project Status"
+  # setting
+  choose_trackers: "Choose Trackers"
+  # project status table
+  no_setting: "Error!  Please"
+  config: "configure"
+  p_name: "Project Name"
+  current: "Current"
+  hint: "* Only active projects are included"
+  work_unit: "man-hour"
+  workload: "Workload<br/>(man-hour)"

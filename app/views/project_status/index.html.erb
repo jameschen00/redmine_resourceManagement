@@ -1,0 +1,90 @@
+<% content_for :header_tags do %>
+    <%= stylesheet_link_tag 'plugin_resource', :plugin => 'resource' %>
+<% end %>
+
+<% html_title(l(:project_status)) %>
+
+<p>
+  <%= l(:hint) %>
+</p>
+
+
+<%
+   if !Setting.plugin_resource["resource_project_status_tracker"] || !Setting.plugin_resource["resource_project_status_tracker"].is_a?(Array)
+%>
+   <p><%=l(:no_setting)  %>&nbsp;<a href='settings/plugin/resource'><%=l(:config)%></a>.</p>
+<%
+  else
+    column_num = 2 +  Setting.plugin_resource["resource_project_status_tracker"].length
+    width = (100 - 10)/column_num
+%>
+
+    <div>
+      <table class='project_status_table'>
+        <!-- title of table-->
+        <tr>
+          <th style="width:<%=width%>%">
+            <%=l(:p_name) %>
+          </th>
+          <%
+             Setting.plugin_resource["resource_project_status_tracker"].each do |trackerId|
+          %>
+              <th style="width:<%=width%>%">
+                <%=Tracker.find(trackerId).name  %>
+              </th>
+          <%
+             end
+          %>
+          <th style="width:<%=width%>%"><%=l(:current)%></th>
+          <th><%=l(:workload).html_safe%></th>
+        </tr>
+        <%
+           rowClass = 'odd'
+           @lines ||= []
+           @lines.each do |line|
+        %>
+            <tr class='<%=rowClass %>'>
+              <td>
+                <span style="width:<%=15*(line[:level])%>px;display: inline-block;"></span>
+                <%= link_to_project(line[:project],{},:class=>'icon icon-projects') if line[:project]%>
+                <%= ("<span class='icon icon-package'>"+ link_to_if(true, line[:version].name, { :controller => 'versions', :action => 'show', :id => line[:version] }, {})+"</span>").html_safe if line[:version]%>
+              </td>
+              <%
+                 Setting.plugin_resource["resource_project_status_tracker"].each do |trackerId|
+              %>
+                  <td style="text-align: center">
+                    <%
+                       line[trackerId].each do |issue|
+                    %>
+                        <!--(<%= issue.estimated_hours %>)(<%=issue.leaf?%>)-->
+                        <%=render_issue issue, Date.today%>
+                    <%
+                       end
+                    %>
+                  </td>
+              <%
+                 end
+              %>
+              <td  style="text-align: center">
+                <%= line[:currentTracker] %>
+              </td>
+              <td style="text-align: right">
+                <%= format("%.1f",line[:workload]).to_s %>
+              </td>
+            </tr>
+        <%
+           rowClass = rowClass == 'even' ? 'odd' : 'even'
+           end
+        %>
+      </table>
+    </div>
+
+<%
+   end
+%>
+
+<script>
+//select tab
+$(".resource-project").addClass("selected");
+</script>
+

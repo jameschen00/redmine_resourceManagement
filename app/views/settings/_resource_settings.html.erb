@@ -1,0 +1,106 @@
+<h2><%= l(:user_allocation_gantt) %></h2>
+
+
+<table>
+  <tbody>
+  <th>Task Tracker Name</th>
+  <td>
+    <select id="settings_resource_task_tracker"
+            value="<%= settings['resource_task_tracker'] %>"
+            name="settings[resource_task_tracker]">
+      <%
+         found = false
+         Tracker.sorted.all.each do |t|
+           found = found || (settings['resource_task_tracker'] == t.id.to_s);
+           selected = settings['resource_task_tracker'] == t.id.to_s ? "selected='selected'":"";
+      %>
+          <option value="<%= t.id%>" <%=selected%>><%= t.name%></option>
+      <%
+         end
+         if !found
+      %>
+          <option value="0" selected='selected'>-</option>
+      <%
+         end
+      %>
+    </select>
+  </td>
+  </tbody>
+</table>
+
+
+<hr/>
+
+<h2><%= l(:project_status) %></h2>
+
+
+<script  type="text/javascript">
+    function clickAdd(id){
+        $("#tracker_line").parent().append(showSelect(id));
+    }
+    function showSelect(selectedId){
+        var html = $("<select id='settings_resource_project_status_tracker' name='settings[resource_project_status_tracker][]'/>");
+        var found = false;
+        <%
+           Tracker.sorted.all.each do |t|
+        %>
+        found = found || (selectedId == <%=t.id.to_s%>);
+        var selected = (selectedId == <%=t.id.to_s%>) ? 'selected=\'selected\'':'';
+        var option = $("<option value='<%= t.id.to_s%>' "+selected+" ><%= t.name%></option>");
+        html.append(option);
+        <%
+           end
+        %>
+        if(!found){
+            var option = $(" <option value='0' selected='selected'>-</option>");
+            html.append(option);
+        }
+
+        var tr = $("<tr/>");
+        var td1 = $("<td>&nbsp;</td>");
+        var td2 = $("<td></td>");
+        td2.append($(html));
+        var del = '<a href="javascript:void(0);">\
+              <img src="../../../../images/delete.png" alt="Delete" onclick="clickDelete(this)"/> \
+              </a>';
+        td2.append($(del));
+        tr.append(td1);
+        tr.append(td2);
+        return $(tr);
+    }
+
+    function clickDelete(button){
+        var tr = $(button).parent().parent().parent();
+        if(tr){
+            tr.remove();
+        }
+    }
+
+</script>
+
+
+<table>
+  <tbody>
+  <tr id="tracker_line">
+    <th><%=l(:choose_trackers)%></th>
+    <td>
+      <div>
+        <a href="javascript:void(0);">
+          <img src="../../../../images/add.png" alt="Add" onclick="clickAdd(-1)"/>
+        </a>
+      </div>
+    </td>
+  </tr>
+  <script type="text/javascript">
+      <%
+         if settings['resource_project_status_tracker'] && settings['resource_project_status_tracker'].is_a?(Array)
+           for trackerId in settings['resource_project_status_tracker']
+      %>
+      clickAdd(<%=trackerId%>);
+      <%
+           end
+         end
+      %>
+  </script>
+  </tbody>
+</table>
