@@ -1,0 +1,47 @@
+= Installing 
+
+* Copy dictionary "resource" into #{RAILS_ROOT}/plugins (Redmine 2.x) or #{RAILS_ROOT}/vendor/plugins (Redmine 1.x).
+ If you are downloading the plugin directly from GitHub, you can do so by changing into your plugin
+ directory "resource" and issuing a command like
+ git clone https://github.com/aliceeee/redmine_resourceManagement.
+
+* Run the following command to upgrade your database (Old data will not be affected).
+
+For Redmine 2.x:
+rake redmine:plugins:migrate RAILS_ENV=production
+
+* Restart Redmine
+
+You should now be able to see the plugin list in Administration -> Plugins.
+
+------------------------------------------------------------------------------------------------------------------------
+
+= Configuring
+
+* Create a new tracker, like: Task
+
+* Go to Administration -> Workflow -> click Field permissions tag.
+
+* Visit http://localhost:3000/settings/plugin/resource, and choose the newly created tracker
+
+------------------------------------------------------------------------------------------------------------------------
+
+= Uninstalling
+
+* Run the following command to downgrade your database (make a db backup before):
+
+For Redmine 2.x:
+rake redmine:plugins:migrate NAME=resource VERSION=0 RAILS_ENV=production
+
+* Remove dictionary "resource" from the plugins folder: #{RAILS_ROOT}/plugins (Redmine 2.x)
+or #{RAILS_ROOT}/vendor/plugins (Redmine 1.x)..
+
+* Restart Redmine
+
+------------------------------------------------------------------------------------------------------------------------
+
+= Contact
+
+Alice
+Any suggestion is welcomed!
+Email:alicefeedback@163.com
