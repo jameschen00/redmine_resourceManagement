@@ -1,6 +1,5 @@
 = Installing 
 
-
 * Copy dictionary "resource" into #{RAILS_ROOT}/plugins (Redmine 2.x) or #{RAILS_ROOT}/vendor/plugins (Redmine 1.x).
  If you are downloading the plugin directly from GitHub, you can do so by changing into your plugin
  directory "resource" and issuing a command like
