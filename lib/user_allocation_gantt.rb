@@ -185,7 +185,7 @@ module PluginResourceModule
         result[:date_to] = @date_to
         result[:users] = []
 
-        issues ||= @json_issues
+        issues = @json_issues || []
         issues.each do |i|
           i[:project_name] = i.project.name
           i[:project_identifier] = i.project.identifier

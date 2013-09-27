@@ -20,6 +20,7 @@ class UserAllocationGanttController < ApplicationController
 
   def show2
     @gantt = PluginResourceModule::UserAllocationGantt.new(params)
+    addSubProjectToParam(params)
     retrieve_query
     @query.group_by = nil
     @gantt.query = @query if @query.valid?
@@ -187,12 +188,12 @@ class UserAllocationGanttController < ApplicationController
     sort_update %w(login firstname lastname mail admin created_on last_login_on)
 
     @limit = limit #per_page_option
-    @status = params[:status] || 1
 
-    scope = User.logged.status(@status)
-    scope = scope.like(params[:name]) if params[:name].present?
-    scope = scope.in_group(params[:group_id]) if params[:group_id].present?
-    scope = scope.where( ["#{User.table_name}.id in (?)", issues.group_by(&:assigned_to_id).keys])# only show users who have issue
+    @status = params[:status] || 1
+    scope = User.logged.status(@status)  # show all logged users
+    #scope = scope.like(params[:name]) if params[:name].present?
+    #scope = scope.in_group(params[:group_id]) if params[:group_id].present?
+    scope = scope.where( ["#{User.table_name}.id in (?)", issues.group_by(&:assigned_to_id).keys]) if issues # only show users who have issue
 
     if !limit.nil?
       @user_count = scope.count
@@ -209,7 +210,7 @@ class UserAllocationGanttController < ApplicationController
 
     @gantt.users =  @users # set to gantt
 
-    @groups = Group.all.sort
+    #@groups = Group.all.sort
   end
 
   def addSubProjectToParam(params)

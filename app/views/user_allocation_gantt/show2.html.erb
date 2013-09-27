@@ -1,6 +1,8 @@
 <% content_for :header_tags do %>
     <%= stylesheet_link_tag 'plugin_resource', :plugin => 'resource' %>
     <%= javascript_include_tag 'project.gantt.reallocation.js',  :plugin => 'resource' %>
+    <%= stylesheet_link_tag 'chosen.min.css', :plugin => 'resource' %>
+    <%= javascript_include_tag 'chosen.jquery.js',  :plugin => 'resource' %>
 <% end %>
 
 
@@ -22,6 +24,7 @@
       </div>
     </fieldset>
 
+    <!--
     <fieldset><legend><%= l(:filter_user_label) %></legend>
       <label for='status'><%= l(:field_status) %>:</label>
       <%= select_tag 'status', users_status_options_for_select(@status), :class => "small" %>
@@ -34,6 +37,7 @@
       <label for='name'><%= l(:label_user) %>:</label>
       <%= text_field_tag 'name', params[:name], :size => 30 %>
     </fieldset>
+    -->
 
     <p class="buttons">
       <%= text_field_tag 'months', @gantt.months, :size => 2 %>
@@ -111,6 +115,126 @@
 
     //remove filter: tracker
     $("#add_filter_select option[value='tracker_id']").remove();
+
+    //
+    //replace filter's select events
+    //
+    $(document).ready(function(){
+        <%
+        @query.filters.each do |field, options|
+            if field == "assigned_to_id"    # change assignee to 'chosen'
+        %>
+        $('#tr_assigned_to_id').remove();//remove the old one
+        new_addFilter("<%= field %>", <%= raw_json @query.operator_for(field) %>, <%= raw_json @query.values_for(field) %>);
+        <%
+            elsif field == "project_id"   # change project to 'chosen'
+        %>
+        $('#tr_project_id').remove();//remove the old one
+        new_addFilter("<%= field %>", <%= raw_json @query.operator_for(field) %>, <%= raw_json @query.values_for(field) %>);
+        <%
+            end
+        end
+        %>
+
+    });
+    // remove event of dropdown of filter
+    $('#add_filter_select').unbind('change');
+    $('#add_filter_select').change(function(data){
+        if(data.target.value == 'assigned_to_id'){
+            // new control
+            new_addFilter($(this).val(), '', []);  // assign-to
+        }else if(data.target.value == 'project_id'){
+            // new control
+            new_addFilter($(this).val(), '', []);  // project
+        }else{
+            // original strategy
+            addFilter($(this).val(), '', []);
+        }
+    });
+
+    function new_addFilter(field, operator, values){
+        var fieldId = field.replace('.', '_');
+        var tr = $('#tr_'+fieldId);
+        if (tr.length > 0) {
+            tr.show();
+        } else {
+            buildAssigneeFilterRow(field, operator, values);
+        }
+        $('#cb_'+fieldId).attr('checked', true);
+        toggleFilter(field);
+        $('#add_filter_select').val('').children('option').each(function(){
+            if ($(this).attr('value') == field) {
+                $(this).attr('disabled', true);
+            }
+        });
+    }
+
+    function buildAssigneeFilterRow(field, operator, values) {
+        var fieldId = field.replace('.', '_');
+        var filterTable = $("#filters-table");
+        var filterOptions = availableFilters[field];
+        var operators = operatorByType[filterOptions['type']];
+        var filterValues = filterOptions['values'];
+        var i, select;
+        var tr = $('<tr class="filter" >').attr('id', 'tr_'+fieldId).html(
+                '<td class="field" style="padding-top: 5px;padding-bottom: 5px"><input checked="checked" id="cb_'+fieldId+'" name="f[]" value="'+field+'" type="checkbox"><label for="cb_'+fieldId+'"> '+filterOptions['name']+'</label></td>' +
+                        '<td class="operator" style="padding-top: 5px;padding-bottom: 5px"><select id="operators_'+fieldId+'" name="op['+field+']"></td>' +
+                        '<td class="values" style="padding-top: 5px;padding-bottom: 5px"></td>'
+        );
+        filterTable.append(tr);
+        select = tr.find('td.operator select');
+        for (i=0;i<operators.length;i++){
+            var option = $('<option>').val(operators[i]).text(operatorLabels[operators[i]]);
+            if (operators[i] == operator) {option.attr('selected', true)};
+            select.append(option);
+        }
+        select.change(function(){toggleOperator(field)});
+        switch (filterOptions['type']){
+            case "list":
+            case "list_status":
+            case "list_optional":
+                tr.find('td.values').append(
+                        '<span ><select id="values_'+fieldId+'_1" name="v['+field+'][]" multiple="multiple" style="width:400px" data-placeholder="Please choose..."></select>' +
+                                ' </span>'
+                );
+                select = tr.find('td.values select');
+                for (i=0;i<filterValues.length;i++){
+                    var filterValue = filterValues[i];
+                    var option = $('<option>');
+                    if ($.isArray(filterValue)) {
+                        option.val(filterValue[1]).text(filterValue[0]);
+                        if ($.inArray(filterValue[1], values) > -1) {option.attr('selected', true);}
+                    } else {
+                        option.val(filterValue).text(filterValue);
+                        if ($.inArray(filterValue, values) > -1) {option.attr('selected', true);}
+                    }
+                    select.append(option);
+                }
+                $( '#values_'+fieldId+'_1' ).chosen();
+                break;
+            default:
+                // omit..
+                break;
+        }
+    }
+
+    $("#query_form").submit(function(){
+        if($("#values_assigned_to_id_1") &&
+                !$("#values_assigned_to_id_1").val() &&
+                $("#operators_assigned_to_id") &&
+                ($("#operators_assigned_to_id").val() == '=' || $("#operators_assigned_to_id").val() == '!')
+                ){
+            $("#tr_assigned_to_id").remove();
+        }
+        if($("#values_project_id_1") &&
+                !$("#values_project_id_1").val() &&
+                $("#operators_assigned_to_id") &&
+                ($("#operators_project_id").val() == '=' || $("#operators_project_id").val() == '!')
+                ){
+            $("#tr_project_id").remove();
+        }
+    });
+
     //]]>
 </script>
 
