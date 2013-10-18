@@ -1,13 +1,16 @@
 class IssueListener < Redmine::Hook::ViewListener
 
-
   private
+
+  def self.valid_to_allocate(issue)
+    !issue.nil?  && !issue.start_date.nil? && !issue.due_date.nil?  && issue.tracker_id.to_s == Setting.plugin_resource['resource_task_tracker']
+  end
 
   def valid_to_allocate(issue)
     !issue.nil?  && !issue.start_date.nil? && !issue.due_date.nil?  && issue.tracker_id.to_s == Setting.plugin_resource['resource_task_tracker']
   end
 
-  def IssueListener.getWorkDays(d1,d2)
+  def self.getWorkDays(d1,d2)
     if d1 > d2
       return 0
     elsif d1 == d2
@@ -35,7 +38,7 @@ class IssueListener < Redmine::Hook::ViewListener
     end
     issue = Issue.find(subissue.parent_id)
 
-    IssueListener.deleteOldAllocation(issue)
+    IssueListener.reallocate!(issue)
   end
 
 
@@ -43,8 +46,18 @@ class IssueListener < Redmine::Hook::ViewListener
     8 * IssueListener.getWorkDays(issue.start_date,issue.due_date)
   end
 
+  def self.default_estimated_hours(issue)
+    8 * IssueListener.getWorkDays(issue.start_date,issue.due_date)
+  end
+
 
   public
+
+  def controller_issues_bulk_edit_before_save(context={ })
+    # set my_attribute on the issue to a default value if not set explictly
+    context[:issue].my_attribute ||= "default"
+  end
+
   # hooker is in /app/controllers/issues_controller.rb
   # create corresponding task allocation in db when saving new task issue
   #
@@ -53,10 +66,10 @@ class IssueListener < Redmine::Hook::ViewListener
     journal = issue.init_journal(User.current, 'Add user allocation -- Added by User Allocation Gantt.')
     if valid_to_allocate(issue) && !issue.estimated_hours
       issue.estimated_hours = default_estimated_hours(issue)
-      IssueListener.newAllocate(issue)
       issue.save
+      IssueListener.reallocate!(issue)
     elsif valid_to_allocate(issue) && issue.estimated_hours > 0
-      IssueListener.newAllocate(issue)
+      IssueListener.reallocate!(issue)
     end
     updateParentTask(issue)
   end
@@ -67,19 +80,6 @@ class IssueListener < Redmine::Hook::ViewListener
   #
   def controller_issues_edit_before_save(context={})
     issue = context[:issue]
-    if issue.changed_attributes && (issue.changed_attributes.has_key?('start_date') ||
-        issue.changed_attributes.has_key?('due_date') ||
-        issue.changed_attributes.has_key?('estimated_hours')  )  ||
-        issue.changed_attributes.has_key?('tracker_id')
-
-      if valid_to_allocate(issue) && !issue.estimated_hours
-        issue.estimated_hours = default_estimated_hours(issue)
-        IssueListener.reallocate(issue)
-        issue.save
-      elsif valid_to_allocate(issue) && issue.estimated_hours > 0
-        IssueListener.reallocate(issue)
-      end
-    end
   end
 
   # hooker is in /app/modules/issue.rb
@@ -87,7 +87,49 @@ class IssueListener < Redmine::Hook::ViewListener
   #
   def controller_issues_edit_after_save(context={})
     issue = context[:issue]
+    if valid_to_allocate(issue) && !issue.estimated_hours
+      issue.estimated_hours = default_estimated_hours(issue)
+      issue.save
+      IssueListener.reallocate!(issue)
+    elsif valid_to_allocate(issue) && issue.estimated_hours > 0
+      IssueListener.reallocate!(issue)
+    end
     updateParentTask(issue)
+  end
+
+  # hooker is in /plugin/resources/init.rb
+  # reallocate when related to other issues
+  #
+  def IssueListener.controller_issue_relation_create_after_save(issue)
+    IssueListener.reallocate!(issue)
+  end
+
+  # reallocate recursively
+  def self.reallocate!(issue)
+    if issue.nil?
+      return
+    end
+    # update children
+    if issue.leaf?
+      # reallocate self
+      if IssueListener.valid_to_allocate(issue) && !issue.estimated_hours
+        issue.estimated_hours = self.default_estimated_hours(issue)
+        IssueListener.reallocate(issue)
+        issue.save
+      elsif IssueListener.valid_to_allocate(issue) && issue.estimated_hours > 0
+        IssueListener.reallocate(issue)
+      end
+    else
+      # reallocate children
+      issue.leaves.each do |leaf|
+        IssueListener.reallocate!(leaf)
+      end
+    end
+    # update related issues
+    issue.relations_from.each do |relation|
+      # reallocate relatives
+      IssueListener.reallocate!(relation.issue_to)
+    end
   end
 
 
@@ -166,13 +208,12 @@ class IssueListener < Redmine::Hook::ViewListener
 
 
   def IssueListener.deleteOldAllocation(issue)
-    TaskAllocation.where(:issue_id => issue.id).each { |i| i.delete }
+    TaskAllocation.delete_by_issue(issue)
   end
 
   # precondition: validate_to_allocate(issue) == true
   def IssueListener.reallocate(issue)
-
-    deleteOldAllocation(issue)
+    TaskAllocation.delete_by_issue(issue)
     return newAllocate(issue)
   end
 
