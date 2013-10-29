@@ -169,9 +169,10 @@ module PluginResourceModule
 
       # alice
       def json_issues
+        Setting.plugin_resource['resource_task_tracker'] = [] if Setting.plugin_resource['resource_task_tracker'].nil?
         @json_issues = @query.issues(
             :include => [:assigned_to, :tracker, :priority, :category, :fixed_version],
-            :conditions => ["start_date < ? and  due_date>? and tracker_id=?", @date_to, @date_from,Setting.plugin_resource['resource_task_tracker'].to_s ],
+            :conditions => ["start_date < ? and  due_date>? and tracker_id in (?)", @date_to, @date_from, Setting.plugin_resource['resource_task_tracker'] ],
             :order => "#{Project.table_name}.lft ASC, #{Issue.table_name}.id ASC",
             :limit => @max_rows
         ) if !@query.nil?
@@ -340,7 +341,8 @@ module PluginResourceModule
       def render_issues(issues, options={})
         @issue_ancestors = []
         issues.each do |i|
-          if i.tracker_id.to_s != Setting.plugin_resource['resource_task_tracker']   #alice: skip drawing trackers that doesn't match setting
+          if Setting.plugin_resource['resource_task_tracker'].is_a?(Array) &&
+              Setting.plugin_resource['resource_task_tracker'].include?(i.tracker_id) #alice: skip drawing trackers that doesn't match setting
             next
           end
           subject_for_issue(i, options) unless options[:only] == :lines

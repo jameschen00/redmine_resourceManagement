@@ -3,11 +3,15 @@ class IssueListener < Redmine::Hook::ViewListener
   private
 
   def self.valid_to_allocate(issue)
-    !issue.nil?  && !issue.start_date.nil? && !issue.due_date.nil?  && issue.tracker_id.to_s == Setting.plugin_resource['resource_task_tracker']
+    !issue.nil?  && !issue.start_date.nil? && !issue.due_date.nil?  &&
+        Setting.plugin_resource['resource_task_tracker'].is_a?(Array) &&
+        Setting.plugin_resource['resource_task_tracker'].include?(issue.tracker_id.to_s)
   end
 
   def valid_to_allocate(issue)
-    !issue.nil?  && !issue.start_date.nil? && !issue.due_date.nil?  && issue.tracker_id.to_s == Setting.plugin_resource['resource_task_tracker']
+    !issue.nil?  && !issue.start_date.nil? && !issue.due_date.nil?  &&
+        Setting.plugin_resource['resource_task_tracker'].is_a?(Array) &&
+        Setting.plugin_resource['resource_task_tracker'].include?(issue.tracker_id.to_s)
   end
 
   def self.getWorkDays(d1,d2)
@@ -55,14 +59,14 @@ class IssueListener < Redmine::Hook::ViewListener
 
   def controller_issues_bulk_edit_before_save(context={ })
     # set my_attribute on the issue to a default value if not set explictly
-    context[:issue].my_attribute ||= "default"
+    #context[:issue].my_attribute ||= "default"
   end
 
   # hooker is in /app/controllers/issues_controller.rb
   # create corresponding task allocation in db when saving new task issue
   #
   def controller_issues_new_after_save(context={})
-    issue = context[:issue]
+    issue = context[:issue].reload
     journal = issue.init_journal(User.current, 'Add user allocation -- Added by User Allocation Gantt.')
     if valid_to_allocate(issue) && !issue.estimated_hours
       issue.estimated_hours = default_estimated_hours(issue)
@@ -86,7 +90,7 @@ class IssueListener < Redmine::Hook::ViewListener
   # edit corresponding task allocation in db when saving editing
   #
   def controller_issues_edit_after_save(context={})
-    issue = context[:issue]
+    issue = context[:issue].reload
     if valid_to_allocate(issue) && !issue.estimated_hours
       issue.estimated_hours = default_estimated_hours(issue)
       issue.save
@@ -120,6 +124,7 @@ class IssueListener < Redmine::Hook::ViewListener
         IssueListener.reallocate(issue)
       end
     else
+      TaskAllocation.delete_by_issue(issue)
       # reallocate children
       issue.leaves.each do |leaf|
         IssueListener.reallocate!(leaf)
@@ -178,7 +183,9 @@ class IssueListener < Redmine::Hook::ViewListener
     has_task_issue = false
     issues = context[:issues]
     issues.each do |issue|
-      if !issue.nil? && issue.tracker_id && issue.tracker_id.to_s == Setting.plugin_resource['resource_task_tracker']
+      if !issue.nil? && issue.tracker_id &&
+          Setting.plugin_resource['resource_task_tracker'].is_a?(Array) &&
+          Setting.plugin_resource['resource_task_tracker'].include?(issue.tracker_id)
         has_task_issue = true
       end
     end

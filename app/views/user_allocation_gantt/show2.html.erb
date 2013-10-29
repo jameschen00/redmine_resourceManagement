@@ -76,18 +76,16 @@
 <p>
   Tips:
 <ul>
-  <li>Only <b>"
+  <li>Only <b>
     <%
-       Tracker.sorted.all.each do |t|
-         if Setting.plugin_resource['resource_task_tracker'] == t.id.to_s
+       trackers = Tracker.where("id in (?)", Setting.plugin_resource['resource_task_tracker']) if Setting.plugin_resource['resource_task_tracker']
+       if trackers && trackers.size > 0
     %>
-            <%=t.name%>
+            <%=trackers.all.collect{|t| t.name}.inspect%>
     <%
-           break
-         end
        end
     %>
-    "</b> can be shown here.
+    </b> can be shown here.
   </li>
   <li>If estimated hours is 8 hours, allocation <b>cannot</b> be 4 + 5.</li>
   <li>If estimated hours is 8 hours, allocation  can be 1.5 + 6.5</li>
