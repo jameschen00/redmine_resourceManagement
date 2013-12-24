@@ -139,12 +139,13 @@ class IssueListener < Redmine::Hook::ViewListener
 
 
   # hooker is in /app/views/issues/_form.html.erb
-  # add js to control that estimated_time / 8 <= due_date - start_date while new or edit any issue
+  #
+  # 1.add js to control that estimated_time / 8 <= due_date - start_date while new or edit any issue
   #
   def view_issues_form_details_bottom(context={})
     issue = context[:issue]
     if issue.leaf?    # only leaf issue need validation
-      return content_tag('script', "
+      validate_estimated_time_js = "
       $('#issue-form').submit(
         function(){
           var start_date = $('#issue_start_date').val();
@@ -169,7 +170,16 @@ class IssueListener < Redmine::Hook::ViewListener
             return true;
           }
         });
-      ".html_safe)
+      ".html_safe
+      order_asignee_js = "
+      var issue_assigned_to = $('#issue_assigned_to_id').val();
+      $('#issue_assigned_to_id').attr('autocomplete','off');
+      $('#issue_assigned_to_id>option').sort(function(a, b){
+          return a.innerHTML.localeCompare(b.innerHTML)
+        }).appendTo($('#issue_assigned_to_id'));
+      $('#issue_assigned_to_id').val(issue_assigned_to);
+      ".html_safe
+      return content_tag('script', "#{validate_estimated_time_js}  #{order_asignee_js}".html_safe)
     else
       return
     end
@@ -210,8 +220,6 @@ class IssueListener < Redmine::Hook::ViewListener
   end
 
   #TODO delete hook
-
-
 
 
   def IssueListener.deleteOldAllocation(issue)
