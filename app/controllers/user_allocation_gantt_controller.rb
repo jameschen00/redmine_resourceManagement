@@ -11,7 +11,7 @@ class UserAllocationGanttController < ApplicationController
   helper :projects
   helper :queries
   helper :users #alice
-  include QueriesHelper
+  include ResourceQueriesHelper
   helper :sort
   include SortHelper
   include UsersHelper #alice
@@ -20,11 +20,10 @@ class UserAllocationGanttController < ApplicationController
 
   def show2
     @gantt = PluginResourceModule::UserAllocationGantt.new(params)
-    addSubProjectToParam(params)
+    #@added_subproject_id = addSubProjectToParam(params)
     retrieve_query
     @query.group_by = nil
     @gantt.query = @query if @query.valid?
-
     respond_to do |format|
       format.html do
         searched_users(params,@gantt.json_issues)
@@ -55,7 +54,7 @@ class UserAllocationGanttController < ApplicationController
 
   def search
     @gantt = PluginResourceModule::UserAllocationGantt.new(params)
-    addSubProjectToParam(params)
+    #@added_subproject_id = addSubProjectToParam(params)
     retrieve_query
     @query.group_by = nil
     @gantt.query = @query if @query.valid?
@@ -213,18 +212,5 @@ class UserAllocationGanttController < ApplicationController
     #@groups = Group.all.sort
   end
 
-  def addSubProjectToParam(params)
-    if params[:v] && params[:v][ 'project_id']
-      projects = Project.visible.all(
-          :conditions => ["id IN (?)", params[:v]['project_id']]
-      )
-      ids = []
-      projects.each do |p|
-        ids  << p.id.to_s
-        p.descendants.all.each{|sub|ids << sub.id.to_s }
-      end
-      params[:v][ 'project_id'] = ids
-    end
-  end
 
 end
